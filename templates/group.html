@@ -1,0 +1,417 @@
+<!DOCTYPE HTML>
+
+<html lang="en">
+
+    <head>
+        <title>{{ groupName }}</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/navbar.css') }}">
+    	<script>
+    		var flag = "checkbox";
+			function makeEdit(item){
+				ele=document.querySelectorAll('[id='+item+']');
+				console.log(item)
+				console.log(ele)
+				ele[0].style=("display:none;");
+				ele[1].setAttribute("type","text");
+				ele[2].style=("display:none;");
+				ele[3].setAttribute("type","submit");
+			};
+
+			function splitEquallyAmongAll() {
+				flag="checkbox";
+				memebers={{ memebers|tojson }};
+				document.getElementById('memeberDisplay').style.display = "block";
+				for(let i=0;i<memebers.length;i++)
+					document.getElementById('c'+memebers[i]).setAttribute("type", "checkbox"),
+					document.getElementById('c'+memebers[i]).checked = true,
+					document.getElementById('n'+memebers[i]).setAttribute("type", "hidden"),
+					document.getElementById('showPercent' + memebers[i]).style.display = "none",
+					document.getElementById('n'+memebers[i]).setAttribute("max", "0xffffff");
+			};	
+
+			function splitByPercent(){
+				memebers={{ memebers|tojson }}
+				var billName=document.getElementById('newLabel')
+
+				document.getElementById('memeberDisplay').style.display = "block";
+				flag="percent";
+				for(let i=0;i<memebers.length;i++)
+					document.getElementById('n'+memebers[i]).setAttribute("type", "number"),
+					document.getElementById('c'+memebers[i]).setAttribute("type", "hidden"),
+					document.getElementById('n'+memebers[i]).setAttribute("max", "100"),
+					document.getElementById('showPercent' + memebers[i]).style.display = "inline-block";
+				
+			};
+
+			function splitUnequally(){
+				memebers={{ memebers|tojson }}
+				var billName=document.getElementById('newLabel')
+
+				document.getElementById('memeberDisplay').style.display = "block";
+				flag="number";
+				for(let i=0;i<memebers.length;i++)
+					document.getElementById('n'+memebers[i]).setAttribute("type", "number"),
+					document.getElementById('c'+memebers[i]).setAttribute("type", "hidden"),
+					document.getElementById('showPercent' + memebers[i]).style.display = "none",
+					document.getElementById('n'+memebers[i]).setAttribute("max", "0xffffff"),
+					console.log('c'+memebers[i]);
+			};
+
+			var f2=0;
+			function ch2(id, f)
+			{
+				flag=f;
+				f2=1;
+				ch(id);
+				f2=0;
+				return;
+			};
+
+			function ch(id){
+				memebers={{ memebers|tojson }}
+				labels = {{ labels|tojson }}
+				console.log(id);
+				form=document.querySelector('[id='+id+']');
+				console.log(form);
+				var lender=form.querySelector('[id=lender]').value;
+				var billName=form.querySelector('[id=newLabel]').value;
+
+
+				console.log("BILL NAME IS " + billName)
+				for(let i=0;i<labels.length && f2==0;i++) {
+					console.log(labels[i])
+					if(labels[i]==billName) {
+						console.log("TRIAL!");
+						form.querySelector('[id=errorBox]').innerHTML='<div class="container-fluid"><div class="alert alert-danger alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Bill name already taken.</strong></div></div>';
+						return;
+					}
+				}
+
+				var flag1 = false
+				for(let i=0;i<memebers.length;i++) {
+					if(lender==memebers[i]) {
+						flag1 = true;
+						console.log(lender)
+						console.log(memebers[i])
+						break;
+					} 
+				}
+
+				console.log("TRIAL2!");
+				if(!flag1) {
+					form.querySelector('[id=errorBox]').innerHTML='<div class="container-fluid"><div class="alert alert-danger alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Enter valid lender name</strong></div></div>';
+					return;
+				}
+				total=parseFloat(form.querySelector('[id=total]').value);
+				if(total==undefined) total=0;
+
+				var sum=0;
+				for(let i=0;i<memebers.length;i++)
+					sum+=parseFloat(form.querySelector('[id=n'+memebers[i]+']').value);
+				console.log(sum);
+
+				
+				if(sum!=total && flag=="number") {
+					console.log("TRIAL!190183");
+					form.querySelector('[id=errorBox]').innerHTML='<div class="container-fluid"><div class="alert alert-danger alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Sum does not add to the required total</strong></div></div>';
+					return;
+				}
+				else if(sum!=100 && flag=="percent"){
+					form.querySelector('[id=errorBox]').innerHTML='<div class="container-fluid"><div class="alert alert-danger alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Sum does not add upto 100 percent</strong></div></div>';
+					return;
+				}
+				else{
+					console.log("inside else");
+					if(flag=="checkbox")
+					{
+						flag="number";	
+						let count=0;
+						for(let i=0;i<memebers.length;i++)
+							if(form.querySelector('[id=c'+memebers[i]+']').checked)
+								count++;
+
+						for(let i=0;i<memebers.length;i++)
+							if(form.querySelector('[id=c'+memebers[i]+']').checked)
+								form.querySelector('[id=n'+memebers[i]+']').value=total/count;
+
+					}
+					if(flag=="percent"){
+						for(let i=0;i<memebers.length;i++)
+							form.querySelector('[id=n'+memebers[i]+']').value=parseFloat(form.querySelector('[id=n'+memebers[i]+']').value)*total/100.0,
+							console.log(form.querySelector('[id=n'+memebers[i]+']').value + " " + total);
+
+					}
+					console.log("submit");
+					form.submit();
+				}
+				console.log("TRIAL100!");
+				return;
+			};
+
+		</script>
+		<style>
+			.mycontent-left {
+ 				border-right: 2px solid #333; 	
+ 				position: fixed;
+ 				width: 15vw;
+ 				height: 90vh;
+			}
+		</style>	
+	
+	</head>
+<body>
+
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+	        <div class="container-fluid">
+	            <div class="navbar-header">
+	            <a class="navbar-brand" href="#">Group Expense Manager</a>
+	            </div>
+	            <ul class="nav navbar-nav">
+	                <li><a href="{{ url_for('index') }}"><span class="glyphicon glyphicon-home"></span> Dashboard</a></li>
+	                <li><a href="{{ url_for('notifications') }}"><span class="glyphicon glyphicon-bell"></span> Friend Requests</a></li>
+	                <li><a href="{{ url_for('getFriends') }}"><span class="glyphicon glyphicon-user"></span> Friends</a></li>
+	            </ul>
+	            <form class="navbar-form navbar-left" action="{{ url_for('index') }}" method="post">
+	                <div class="input-group">
+	                    <input type="text" class="form-control" placeholder="Search for other users" name="search">
+	                    <div class="input-group-btn">
+	                        <button class="btn btn-default" type="submit">
+	                            <i class="glyphicon glyphicon-search"></i>
+	                        </button>
+	                    </div>
+	                </div>
+	            </form>
+	            <!--<button class="btn btn-danger navbar-btn">Button</button>-->
+	            <ul class="nav navbar-nav navbar-right">
+	                <li><a href="{{ url_for('viewLog') }}"><span class="glyphicon glyphicon-list-alt"></span> Logs</a></li>
+	                <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+	            </ul>
+	        </div>
+	    </nav>
+
+	    <br>
+	    <br>
+	    <br>
+		<div class="row">
+			<div class="col-sm-2 text-center">
+				<div class="mycontent-left container">
+					<h1 class="text-center">{ {{groupName}} }</h1>
+					<h4 class="text-center"> <i>Created by {{admin}} </i></h4>
+					<hr style="border: 1px solid black;">
+					{% if username==admin %}
+						<h4><i>Add more members:</i></h4>
+						<form class="form-horizontal" method="post" action="{{url_for('addGroupie', groupName=groupName, admin=admin, rAddr='viewGroup')}}">
+							<div class="form-group"><input type="text" name="add" required /></div>
+							<div class="form-group"><input type="submit" class="btn btn-success btn-md bottom" name="submit" value="Add Memeber" /></div>
+						</form>
+						{% if problem=='memeber' %}
+						<p> already exists </p>
+						{% endif %}
+					{% endif %}
+					<hr style="border: 1px solid black;">
+					<h4><i>Group members:</i></h4>
+					{% for item in memebers %}
+						{%if item!=admin %}
+							<p style="display:inline-block;"> {{item}} &nbsp</p>
+							{% if username==admin %}
+							<a href="{{url_for('delGroupie', admin=admin, groupName=groupName, deletie=item)}}">Delete </a>
+							<br>
+							{% endif %}
+						{% endif %}
+					{% endfor %}
+					<hr style="border: 1px solid black;">
+				
+	  				<button type="button" class="btn btn-info btn-lg bottom" data-toggle="modal" data-target="#whyNot">+ ADD NEW BILL</button>
+	  				{% if username==admin %}
+							<h6><a class="btn btn-danger btn-lg" href="{{url_for('delGroup', groupName=groupName)}}"> DELETE GROUP</a></h6>
+					{%endif%}	
+				</div>
+			</div>
+		<div class="col-sm-10">
+			<div class="mycontent-right">
+
+	  	<!-- Modal -->
+	  	<div class="modal fade" id="whyNot" role="dialog">
+	  		<br>
+	  		<br><br>
+	    	<div class="modal-dialog">
+	    
+	      <!-- Modal content-->
+	      	<div class="modal-content">
+	        	<div class="modal-header">
+	          	<button type="button" class="close" data-dismiss="modal">&times;</button>
+	          	<h4 class="modal-title">Add a new bill</h4>
+	        </div>
+	        <div class="modal-body">
+	        	<div class="container-fluid">
+	        	<form class="form-horizontal" action="{{ url_for('addBillTrans', admin=admin, groupName=groupName) }}" method="post" id="newBillForm">
+	        	<div id="errorBox" type="hidden">
+	        			
+	        	</div>	
+	        	<div class="form-group">
+	        		<label for="label">Bill Name </label>
+	        		<input type="text" name="label" id="newLabel" value="" required /></div>
+	        		<div class="form-group">
+	        		<label for="lender">Lender Name </label>
+	        		<input type="text" name="lender" value="lender" id="lender" required /></div>
+	        		<div class="form-group">
+	        		<label for="total">Amount </label>
+	        		<input type="number" name="total" id="total" value="0.0" min="0" required /></div>
+	        		<div class="form-group" style="display: inline-block; margin: 5px;">
+	        		<button type="button" class="btn btn-info btn-sm bottom" onclick="splitEquallyAmongAll()">Split bill equally among all </button></div>
+	        		<div class="form-group" style="display: inline-block; margin: 5px;">
+	        		<button type="button" class="btn btn-info btn-sm bottom" onclick="splitUnequally()">Split unequally by number</button></div>
+	        		<div class="form-group" style="display: inline-block; margin: 5px;">
+	        		<button type="button"  class="btn btn-info btn-sm bottom" onclick="splitByPercent()">Split unequally by percentage </button></div><hr>
+
+	        		<div id="memeberDisplay" style="display: none;">
+
+	        		{% for i in memebers %}
+	        			<p> {{ i }} </p>
+	        			<input type="hidden" id="c{{ i }}" name="c{{ i }}"/>
+	        			<input type="hidden" id="n{{ i }}" name="n{{ i }}" value="0" min="0"/>
+	        			<div id="showPercent{{i}}" style="display: none;">%</div>	
+	        		{% endfor %}
+	        		</div>
+
+	        		<button type="button" class="btn btn-success btn-sm bottom" onclick="ch('newBillForm')">Submit</button>
+	        	</form>
+	        </div>
+
+	        </div>
+	        <div class="modal-footer">
+	          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        </div>
+	      </div>
+	      
+	    </div>
+	  </div>
+	  
+
+	  <div class="container-fluid">
+	  	<h3 class="text-center"> <strong>  PENDING BILLS </strong> </h3>
+	  	<br>
+       <div class="row text-center">
+		{% for label in labels %}
+		<div class="col-sm-3">
+		    <!--<div class="well">-->
+		    <div class="thumbnail" style="padding-bottom: auto;">
+	  		<h2>{{ label }}</h2>
+	  	<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#{{ label }}">View</button>
+	  	{% if username==labelTrans[label]['labelLender'] %}
+	  	<a href="{{url_for('settleBill', admin=admin, groupName=groupName, label=label)}}"> <button type="button" class="btn btn-info btn-md" >Settle</button> </a>
+	  	{% endif %}
+
+	  	<!-- Modal -->
+	  	<div class="modal fade" id="{{ label }}" role="dialog">
+	  		<br>
+	  		<br><br>
+	    	<div class="modal-dialog">
+	    
+	      <!-- Modal content-->
+	      	<div class="modal-content">
+	        	<div class="modal-header">
+	          	<button type="button" class="close" data-dismiss="modal">&times;</button>
+	          	<h4 class="modal-title">{{ label }}</h4>
+	        </div>
+	        <div class="modal-body">
+	        	
+	        <form action="{{url_for('addBillTrans', admin=admin, groupName=groupName, label=label) }}" method="post" id="{{ label }}Labelid">
+	        	<div id="errorBox" type="hidden">        			
+	        	</div>	
+	        	<p> {{label}} </p>
+	        	<input type="hidden" id="newLabel" value="{{label}}"/>
+	        	<p> Lender </p>
+	        	<input type="text" name="lender" id="lender" value="{{ labelTrans[label]['labelLender'] }}" />  <br>
+	        	<p> Total </p>
+	        	<input type="number" name="total" id="total" value="{{ labelTrans[label]['labelTotal'] }}" /> <br>
+	          	{% for random in labelTrans[label]['labelTrans'] %}
+	          		<p> {{random[4]}} </p>
+	          		<input type="number" id="n{{ random[4] }}" name="n{{ random[4] }}" min="0" max="0xffffff" value="{{ random[5] }}"/>
+	          		<br>
+	          	{% endfor %}
+	          	{% for random in labelTrans[label]['labelZeroes'] %}
+	          		<p> {{random}} </p>
+	          		<input type="number" id="n{{ random }}" name="n{{ random }}" min="0" max="0xffffff" value=""/>
+	          		<br>
+	          	{% endfor %}
+
+	          	<button type="button" onclick="ch2('{{ label }}Labelid', 'number')">SUBMIT</button>
+	         </form>
+	        </div>
+	        <div class="modal-footer">
+	          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        </div>
+	      </div>
+	      
+	    </div>
+	  </div>
+	  	</div>
+	  </div>
+		{% endfor %}
+		</div>
+	</div>
+		<hr>
+
+	  	<h3> <i> Pending Transactions: </i> </h3> <br>
+
+		{% for trans in indiTrans.keys() %}
+		    {% if indiTrans[trans] > 0 %}
+		        <p style="color: green; font-size: 15px"> <strong> {{trans}} owes you Rs. {{ indiTrans[trans] }}</strong></p>
+				<a href="{{url_for('delTrans', groupName=groupName, admin=admin, fro=username, to=trans, tid='False')}}"> delete </a>
+		    {% elif indiTrans[trans] < 0 %}
+		        <p style="color: red;"> <strong> You owe {{trans}} Rs. {{ -1 * indiTrans[trans] }} </strong></p>
+		    {% endif %}
+		{%endfor%}
+
+
+		<hr>
+
+
+		<h3><i>Comments:</i></h3><br>
+		<!-- comments -->
+		<form method="post" action="{{ url_for('addComment', par=-1, groupName=groupName, admin=admin) }}">
+			<input type="text" name="comment" required />
+			<input type="submit" class="btn btn-success btn-sm bottom" name="submit" value="Comment">
+		</form>
+
+		{% for item in vertices recursive %}
+			<div class="media">
+				<div class="media-left">
+	      			<img src="sjdhcsdkj.png" class="media-object" alt="" style="width:45px">
+	    		</div>
+	    		<div class="media-body">
+	    			<!--<div class="well well-sm">-->
+					<h4 class="media-heading">{{comments[item]['username']}} <small><i>Posted on {{ comments[item]['commentDate'] }}</i></small></h4>
+					
+					<p id='i{{item}}' type=""> {{comments[item]['comment']}} </p>
+					<form method="post" action="{{ url_for('editComment',cid=item, groupName=groupName, admin=admin) }}">
+						<input id='i{{item}}' type="hidden" value={{comments[item]['comment']}} name="comment" required/>
+						{% if username==comments[item]['username'] %}
+							<a id='i{{item}}' onclick=makeEdit('i{{item}}') style="display: inline-block;"> Edit </a> 
+							<input type="hidden" class="btn btn-success btn-sm bottom" id='i{{item}}' name="submit" value="Edit" />
+						{% endif %}
+					</form>
+
+					<a href="{{url_for('delComment', par=item, groupName=groupName, admin=admin, commentDate=comments[item]['commentDate'])}}"> Delete </a>
+					
+					<form method="post" action="{{ url_for('addComment', par=item, groupName=groupName, admin=admin) }}">
+						<input type="text" name="comment" required />
+						<input type="submit" class="btn btn-success btn-sm bottom" name="submit" value="Reply">
+					</form>
+					
+				<!--</div>-->
+					{% if comments[item]['children'] %}
+						{{ loop(comments[item]['children']) }}
+					{% endif %}
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+	</div>
+	</div>
+</body>
+</html>

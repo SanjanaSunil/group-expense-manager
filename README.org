@@ -1,0 +1,4 @@
+# Group-Expense-Manager
+Expenses and bill sharing web app using Flask.
+
+To run the app, =python main.y=

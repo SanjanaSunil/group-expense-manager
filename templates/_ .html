@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+
+<html>
+
+        <head>
+                <title>Create a new group</title>
+                <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+                <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+                <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+                <script>
+                	var counts = {{ friends|tojson }};
+                	$( function() {
+                    	    var availableTags = counts;
+                        	$( "#tags" ).autocomplete({
+                        	source: availableTags
+                        });
+                	} );
+                </script>
+                </head>
+
+        <body>
+                <form action="{{ url_for('createGroup') }}" method="post">
+                        <pre>Group Name</pre>
+                        <input type="text" name="groupname" id="groupname" placeholder="Group Name" required/>
+                        <form action="{{ url_for('createGroup') }}" method="post">
+                                <div class="ui-widget">
+                                        <label for="tags">Add friends to the group: </label>
+                                        <input id="tags" name="tags">
+                                        <input type="submit" name="add" value="Add">
+                                </div>
+                        </form>
+                        {% for name in names %}
+				{% if name in friends %}
+                        		<p>{{ name }}</p>
+				{% endif %}
+                        {% endfor %}
+                </form> 
+        </body>
+    
+</html>
